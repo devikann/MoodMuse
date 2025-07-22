@@ -1,0 +1,151 @@
+/* frontend/style.css */
+
+/* General Body Styling */
+body {
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(to bottom right, #0F0C29, #302B63, #24243E); /* Deep blue-purple gradient */
+  color: #E0E7FF; /* Light blue-gray for text */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+}
+
+/* Container for sections */
+.container {
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(15px); /* Stronger blur effect */
+  border-radius: 1.5rem; /* More rounded corners */
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Stronger shadow for depth */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle, lighter border */
+  width: 100%;
+  max-width: 800px; /* Max width for content */
+  margin-bottom: 2rem;
+}
+
+/* Main Heading (H1) */
+h1 {
+  font-size: 3.5rem; /* Larger heading */
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 2.5rem;
+  /* Using a solid color that fits the theme. */
+  color: #00FFFF; /* Vibrant Cyan for the title */
+  text-shadow: 0 0 10px #00FFFF, 0 0 20px #00FFFF; /* Glowing effect */
+}
+
+/* Section Headings (H2) */
+h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #00FFFF; /* Vibrant Cyan for section titles */
+}
+
+/* General Button Styling */
+button {
+  padding: 0.8rem 1.5rem;
+  border-radius: 0.75rem; /* Rounded buttons */
+  font-weight: 600;
+  transition: all 0.3s ease;
+  transform: scale(1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Slightly stronger shadow */
+}
+button:hover {
+  transform: scale(1.03); /* Slight scale on hover */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4); /* Enhanced hover shadow */
+}
+
+/* Mood Buttons */
+.mood-button {
+  background-color: #2D3748; /* Darker gray-blue */
+  color: #E2E8F0; /* Lighter text for contrast */
+}
+.mood-button:hover {
+  background-color: #374151; /* Darker gray on hover */
+}
+.mood-button.selected {
+  background-color: #00FFFF; /* Vibrant Cyan for selected mood */
+  color: #1A202C; /* Dark text for contrast on bright background */
+  outline: 3px solid #00FFFF; /* Matching glow outline */
+  outline-offset: 2px;
+  box-shadow: 0 0 15px #00FFFF; /* Glow for selected button */
+}
+
+/* Generate Button */
+.generate-button {
+  background: linear-gradient(to right, #8A2BE2, #FF00FF); /* BlueViolet to Magenta */
+  color: white;
+  font-size: 1.25rem;
+}
+.generate-button:hover {
+  background: linear-gradient(to right, #6A1BA0, #C200C2); /* Darker gradient on hover */
+}
+
+/* Textarea */
+textarea {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background-color: #1A202C; /* Darker background for textarea */
+  color: #E0E7FF;
+  border: 1px solid #4A5568; /* Subtle border */
+  resize: vertical;
+  min-height: 120px;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+textarea:focus {
+  border-color: #00FFFF; /* Cyan border on focus */
+  box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.5); /* Cyan glow on focus */
+}
+
+/* Music Embed Container (for Spotify previews or local MP3s) */
+.music-embed-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio (for consistent sizing if iframe is used) */
+  height: 0;
+  overflow: hidden;
+  border-radius: 1rem; /* rounded-xl */
+  margin-top: 1.5rem;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); /* Cyan glow around video/audio */
+}
+.music-embed-container iframe,
+.music-embed-container audio {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Suggestion Buttons */
+.suggestion-button {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px; /* Full rounded for pill shape */
+  background-color: #2D3748; /* Darker gray-blue */
+  color: #CBD5E0; /* Lighter gray text */
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+}
+.suggestion-button:hover {
+  background-color: #4A5568; /* Slightly lighter on hover */
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 640px) {
+  h1 { font-size: 2.5rem; }
+  h2 { font-size: 1.5rem; }
+  .container { padding: 1.5rem; }
+  .grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .sm\:grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* Keep 2 columns on small screens */
+  }
+}

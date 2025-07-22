@@ -1,0 +1,4 @@
+Flask
+Flask-Cors
+spotipy
+# Removed: requests, transformers, torch, accelerate, soundfile

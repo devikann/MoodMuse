@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MoodMuse</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts - Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <!-- Link to external style.css -->
+  <link rel="stylesheet" href="style.css"/>
+
+  <!-- Removed Magenta.js and Tone.js CDNs -->
+</head>
+<body>
+  <h1 class="text-5xl sm:text-6xl font-extrabold text-center mb-8">
+    MoodMuse
+  </h1>
+  <!-- Removed: <p id="user-id-display" class="text-sm text-gray-300 mb-6">User ID: (Local Backend)</p> -->
+
+  <!-- Error Display -->
+  <div id="error-message" class="hidden bg-red-600 text-white p-3 rounded-lg mb-6 shadow-md w-full max-w-2xl text-center"></div>
+  <div id="loading-indicator" class="hidden bg-blue-500 text-white p-3 rounded-lg mb-6 shadow-md w-full max-w-2xl text-center">
+    Loading...
+  </div>
+
+  <!-- Section 1: Choose Your Mood -->
+  <section class="container">
+    <h2 class="text-3xl font-bold mb-6">1. Choose Your Mood</h2>
+    <p class="text-center text-gray-300 mb-6">Select a mood to get instant song suggestions from Spotify.</p>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+      <button class="mood-button" data-mood="happy" onclick="getSongs(this, 'happy')">Happy</button>
+      <button class="mood-button" data-mood="sad" onclick="getSongs(this, 'sad')">Sad</button>
+      <button class="mood-button" data-mood="energetic" onclick="getSongs(this, 'energetic')">Energetic</button>
+      <button class="mood-button" data-mood="focused" onclick="getSongs(this, 'focused')">Focused</button>
+    </div>
+    <div id="song-list" class="mt-8 text-center"></div>
+  </section>
+
+  <!-- Section 2: Describe Your Day -->
+  <section class="container">
+    <h2 class="text-3xl font-bold mb-6">2. Generate Custom Music</h2>
+    <p class="text-center text-gray-300 mb-6">Tell me about your day, and I'll generate music based on your text.</p>
+
+    <textarea id="prompt" placeholder="e.g., I had a really tough day at work, feeling exhausted."></textarea>
+
+    <div id="suggestions-container" class="flex flex-wrap gap-2 mb-6 justify-center mt-4">
+      </div>
+
+    <button onclick="generateMusic()" class="generate-button w-full py-3 rounded-xl font-bold">
+      Generate Music
+    </button>
+
+    <div id="generated-music" class="mt-8 text-center"></div>
+  </section>
+
+  <script>
+    // Backend URL for Spotify and AI generation
+    const backend_url = "http://127.0.0.1:5000";
+
+    // Dummy data for chatbot suggestions
+    const suggestions = [
+      "I'm feeling good today!",
+      "I had a rough day.",
+      "I feel incredibly happy and energetic.",
+      "I need something to help me focus.",
+      "I'm feeling a bit down and reflective.",
+      "Just looking for some chill background music."
+    ];
+
+    // Initialize suggestions on page load
+    window.onload = () => {
+        populateSuggestions();
+    };
+
+    // --- Utility functions ---
+    function displayError(message) {
+      const errorDiv = document.getElementById("error-message");
+      if (message) {
+        errorDiv.textContent = message;
+        errorDiv.classList.remove("hidden");
+      } else {
+        errorDiv.classList.add("hidden");
+        errorDiv.textContent = '';
+      }
+    }
+
+    function showLoading(isLoading, message = "Loading...") {
+      const loadingDiv = document.getElementById("loading-indicator");
+      if (isLoading) {
+        loadingDiv.textContent = message;
+        loadingDiv.classList.remove("hidden");
+      } else {
+        loadingDiv.classList.add("hidden");
+      }
+    }
+
+    function populateSuggestions() {
+      const suggestionsContainer = document.getElementById("suggestions-container");
+      suggestionsContainer.innerHTML = '';
+      suggestions.forEach((suggestion, index) => {
+        const button = document.createElement('button');
+        button.textContent = suggestion;
+        button.classList.add('suggestion-button');
+        button.onclick = () => document.getElementById('prompt').value = suggestion;
+        suggestionsContainer.appendChild(button);
+      });
+    }
+
+    // --- Spotify Song Fetching (Calls backend) ---
+    window.getSongs = async function(buttonElement, mood) {
+      // Clear previous generated music
+      document.getElementById("generated-music").innerHTML = '';
+
+      // Remove 'selected' class from all mood buttons
+      document.querySelectorAll('.mood-button').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+      // Add 'selected' class to the clicked button
+      buttonElement.classList.add('selected');
+
+      const songDiv = document.getElementById("song-list");
+      songDiv.innerHTML = ''; // Clear previous songs
+      displayError(''); // Clear any previous errors
+      showLoading(true, `Fetching ${mood} songs from Spotify...`);
+
+      try {
+        const response = await fetch(`${backend_url}/get_songs`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mood: mood })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`Backend error: ${response.status} - ${errorData.error || 'Unknown error'}`);
+        }
+
+        const data = await response.json();
+        if (data.spotify_songs && data.spotify_songs.length > 0) {
+          let htmlContent = `<h3 class="text-2xl font-semibold mb-4 text-pink-200">${mood.toUpperCase()} Songs (Spotify):</h3>`;
+          data.spotify_songs.forEach(song => {
+            htmlContent += `
+              <div class="mb-4 p-4 bg-gray-800 rounded-xl shadow-md">
+                <p class="text-lg font-bold">${song.name}</p>
+                <p class="text-sm text-gray-400">by ${song.artist}</p>
+                <a href="${song.url}" target="_blank" class="text-blue-400 hover:underline text-sm block mt-2">Listen on Spotify</a>
+                ${song.preview ? `
+                  <div class="music-embed-container mt-3">
+                    <audio controls src="${song.preview}" class="w-full h-full"></audio>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">Preview available</p>
+                ` : '<p class="text-xs text-gray-500 mt-1">No preview available</p>'}
+              </div>
+            `;
+          });
+          songDiv.innerHTML = htmlContent;
+        } else {
+          songDiv.innerHTML = `<p class="text-gray-400">No Spotify songs found for ${mood} mood.</p>`;
+        }
+      } catch (err) {
+        console.error("Error fetching songs:", err);
+        displayError(`Failed to fetch songs: ${err.message}. Please ensure the backend is running.`);
+      } finally {
+        showLoading(false);
+      }
+    };
+
+    // --- AI Music Generation (Calls backend for Gemini AI & YouTube) ---
+    window.generateMusic = async function() {
+        const promptText = document.getElementById("prompt").value.trim();
+        if (!promptText) {
+            displayError("Please enter some text to generate music.");
+            return;
+        }
+
+        document.getElementById("song-list").innerHTML = ''; // Clear Spotify songs
+        document.getElementById("generated-music").innerHTML = ''; // Clear previous generated music
+        displayError(''); // Clear any previous errors
+        showLoading(true, "Generating custom music with AI...");
+
+        try {
+            const response = await fetch(`${backend_url}/generate_music`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: promptText })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`Backend error: ${response.status} - ${errorData.error || 'Unknown error'}`);
+            }
+
+            const data = await response.json();
+            console.log("Frontend received data for AI generation:", data);
+
+            if (data.videoId && data.title && data.mood) {
+                document.getElementById("generated-music").innerHTML = `
+                    <h3 class="text-2xl font-semibold mb-4 text-pink-200">AI Generated Music (Mood: ${data.mood})</h3>
+                    <div class="music-embed-container">
+                        <iframe
+                            src="https://www.youtube.com/embed/${data.videoId}?autoplay=1"
+                            title="${data.title}"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                    <p class="mt-3 text-gray-300 text-sm">Now playing: "${data.title}"</p>
+                    <p class="text-xs text-gray-400 mt-1">
+                        Credits: Music suggestion powered by AI (Gemini API) and embedded from YouTube.
+                    </p>
+                `;
+            } else {
+                displayError(`Could not generate music. Backend response missing expected data. Check console for details.`);
+                document.getElementById("generated-music").innerHTML = `<p class="text-gray-400">Could not generate music. Please try again or check backend logs.</p>`;
+            }
+        } catch (err) {
+            console.error("Error generating music (frontend):", err);
+            displayError(`Failed to generate music: ${err.message}. Please ensure the backend is running and accessible.`);
+        } finally {
+            showLoading(false);
+        }
+    };
+  </script>
+</body>
+</html>
